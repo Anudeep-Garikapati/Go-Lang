@@ -1,65 +1,52 @@
 package main
 
-import (
-	"fmt"
-	"go_training/Go-Lang/simplecalc"
-)
+import "fmt"
 
-type Address struct {
-	state   string
-	pincode int
+func sum(s []int, c chan int) {
+	sum := 0
+	for _, v := range s {
+		sum += v
+	}
+	c <- sum
 }
 
 func main() {
-	fmt.Println("Hell")
-	a, b := 11.0, 9.0
-	fmt.Println(simplecalc.Add(a, b))
-	fmt.Println(simplecalc.Sub(a, b))
+	s := []int{7, 2, 8, -9, 4, 0}
 
-	day := 2
+	c1 := make(chan int)
+	c2 := make(chan int)
+	go sum(s[:len(s)/2], c1)
+	go sum(s[len(s)/2:], c2)
+	x, y := <-c1, <-c2
+	fmt.Println(x, y, x+y)
 
-	switch day {
-	case 1, 3, 5:
-		fmt.Println("Odd weekday")
-	case 2, 4:
-		fmt.Println("Even weekday")
-	case 6, 7:
-		fmt.Println("Weekend")
-	default:
-		fmt.Println("Invalid day of day number")
+	//PRIME NUMBER GENERATOR
+
+	ch := make(chan int)
+	generate(ch)
+
+	for {
+		prime := <-ch
+		fmt.Print(prime, " ")
+		ch1 := make(chan int)
+		go filter(ch, ch1, prime)
+		ch = ch1
 	}
-	for i := 0; i < 5; i++ {
-		fmt.Println(i)
-	}
-	//struct
-	vamsi := Address{"HYD", 4584}
-	fmt.Println(vamsi)
-	Ajay := Address{"AP", 78555}
-	fmt.Println(Ajay)
 
-	//arrays & slices
-	a1 := [4]int{23, 55, 44, 88}
-	fmt.Println(a1)
-	fmt.Println(len(a1))
-	fmt.Println(cap(a1))
-	s1 := []string{"HI", "HELLO", "ALL", "WELCOME", "TO", "THE", "CLASS"}
-	fmt.Println(s1[2:5])
-	fmt.Println(len(s1))
-	fmt.Println(cap(s1))
-	s2 := make([]int, 3, 6)
-	fmt.Println(s2)
-	fmt.Println(len(s2))
-	fmt.Println(cap(s2))
-	s1 = append(s1, "GOLANG")
-	fmt.Println(s1)
+}
 
-	//Maps
-	m1 := map[int]string{
-		1: "where",
-		2: "Are",
-		3: "you",
+func generate(ch chan int) {
+	go func() {
+		for i := 2; ; i++ {
+			ch <- i
+		}
+	}()
+}
+
+func filter(in chan int, out chan int, filter int) {
+	for val := range in {
+		if val%filter != 0 {
+			out <- val
+		}
 	}
-	fmt.Println(m1)
-	m1[4] = "smile"
-	fmt.Println(m1)
 }
