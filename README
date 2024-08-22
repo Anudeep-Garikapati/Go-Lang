@@ -1,0 +1,13 @@
+UNBUFFERED CHANNEL:- used for synchronizing between goroutines
+BUFFERED CHANNEL:- it has a capacity defined at creation and used ,if you want to seperate the timing for sending and receiving operations and also to send multiple values
+
+PROS:
+UNBUFFERED - .synchronizing is simple
+             .easy to detect deadlocks
+BUFFERED - gives asynchronus communication and decoupling 
+
+CONS:
+UNBUFFERED - .no asynchronus communication
+             .sending and receiving are blocking operations( which leads to deadlocks)
+
+channel depends on the specific needs of our application and the patterns you are implementing.
