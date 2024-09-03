@@ -1,52 +1,27 @@
 package main
 
-import "fmt"
+import (
+	"database/sql"
+	"log"
+	"net/http"
 
-func sum(s []int, c chan int) {
-	sum := 0
-	for _, v := range s {
-		sum += v
-	}
-	c <- sum
-}
+	"main.go/api"
+
+	_ "github.com/go-sql-driver/mysql"
+)
 
 func main() {
-	s := []int{2, 0, 1, 7, -11, 5}
+	dsn := "root:anudeep@tcp(localhost:3306)/library"
 
-	c1 := make(chan int)
-	c2 := make(chan int)
-	go sum(s[:len(s)/2], c1)
-	go sum(s[len(s)/2:], c2)
-	x, y := <-c1, <-c2
-	fmt.Println(x, y, x+y)
-
-	//PRIME NUMBER GENERATOR
-
-	ch := make(chan int)
-	generate(ch)
-
-	for {
-		prime := <-ch
-		fmt.Print(prime, " ")
-		ch1 := make(chan int)
-		go filter(ch, ch1, prime)
-		ch = ch1
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-}
-
-func generate(ch chan int) {
-	go func() {
-		for i := 2; ; i++ {
-			ch <- i
-		}
-	}()
-}
-
-func filter(in chan int, out chan int, filter int) {
-	for val := range in {
-		if val%filter != 0 {
-			out <- val
-		}
+	defer db.Close()
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
 	}
+	api.RegisterRouter(db)
+	log.Println("server strt on port 8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
