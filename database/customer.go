@@ -8,6 +8,7 @@ import (
 	"main.go/model"
 )
 
+// decode
 func CreateCustomer(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 	var customer model.Customer
 	decoder := json.NewDecoder(r.Body)
@@ -15,23 +16,22 @@ func CreateCustomer(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 
 		return err
 	}
-	prod := "select quan from product where product =?"
+	prod := "select quantity from product where product =?"
 	var total int
-	a := customer.Product
-	err1 := db.QueryRow(prod, a).Scan(&total)
+	err1 := db.QueryRow(prod, customer.Product).Scan(&total)
 	if err1 != nil {
 		return err1
 	}
-	if total >= customer.Quantity && customer.Quantity > 0 {
+	if customer.Quantity <= 0 || total < customer.Quantity {
 		query := "INSERT INTo customer (Name,Phn,Email,Quantity,Product) VALUES (?,?,?,?)"
 		_, err := db.Exec(query, customer.Name, customer.Phn, customer.Email, customer.Quantity, customer.Product)
 		if err != nil {
 			return err
 		}
 		//update
-		b := total - customer.Quantity
+		newquantity := total - customer.Quantity
 		quantUPDATE := "SET quantity=? where product=?"
-		_, err2 := db.Exec(quantUPDATE, b, customer.Product)
+		_, err2 := db.Exec(quantUPDATE, newquantity, customer.Product)
 		if err2 != nil {
 			return err2
 		}
